@@ -3,7 +3,7 @@ package com.fabrica.cine.backend.service.ticket;
 import com.fabrica.cine.backend.dto.ticket.TicketConfirmationDTO;
 import com.fabrica.cine.backend.dto.ticket.TicketPurchaseDTO;
 import com.fabrica.cine.backend.mapper.TicketPurchaseMapper;
-import com.fabrica.cine.backend.model.Customer;
+import com.fabrica.cine.backend.model.User;
 import com.fabrica.cine.backend.model.Movie;
 import com.fabrica.cine.backend.model.TicketPurchase;
 import com.fabrica.cine.backend.repository.CustomerRepository;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 @Service
-public class TicketPurchaseService {
+public class TicketPurchaseServiceImpl {
 
     private final TicketPurchaseRepository ticketPurchaseRepository;
     private final MovieRepository movieRepository;
@@ -23,11 +23,11 @@ public class TicketPurchaseService {
     private final JavaMailSender mailSender;
     private final TicketPurchaseMapper ticketPurchaseMapper;
 
-    public TicketPurchaseService(TicketPurchaseRepository ticketPurchaseRepository,
-                                 MovieRepository movieRepository,
-                                 CustomerRepository customerRepository,
-                                 JavaMailSender mailSender,
-                                 TicketPurchaseMapper ticketPurchaseMapper) {
+    public TicketPurchaseServiceImpl(TicketPurchaseRepository ticketPurchaseRepository,
+                                     MovieRepository movieRepository,
+                                     CustomerRepository customerRepository,
+                                     JavaMailSender mailSender,
+                                     TicketPurchaseMapper ticketPurchaseMapper) {
         this.ticketPurchaseRepository = ticketPurchaseRepository;
         this.movieRepository = movieRepository;
         this.customerRepository = customerRepository;
@@ -36,11 +36,10 @@ public class TicketPurchaseService {
     }
 
     public TicketConfirmationDTO purchaseTicket(TicketPurchaseDTO dto) {
-        // Validación de Customer
-        Customer customer = customerRepository.findById(dto.getCustomerId())
+
+        User customer = customerRepository.findById(dto.getCustomerId())
                 .orElseThrow(() -> new RuntimeException("El cliente no existe"));
 
-        // Validación de Movie
         Movie movie = movieRepository.findById(dto.getMovieId())
                 .orElseThrow(() -> new RuntimeException("La película no existe"));
 
@@ -52,28 +51,27 @@ public class TicketPurchaseService {
             throw new RuntimeException("No hay boletas suficientes");
         }
 
-        // Restar capacidad
+        if (dto.getQuantity() <= 0) {
+            throw new RuntimeException("La cantidad mínima de entradas a comprar es 1");
+        }
+
         movie.setCapacity(movie.getCapacity() - dto.getQuantity());
         movieRepository.save(movie);
 
-        // Mapear DTO -> Entity
         TicketPurchase purchase = ticketPurchaseMapper.toEntity(dto);
         purchase.setCustomer(customer);
         purchase.setMovie(movie);
         purchase.setPurchaseDate(LocalDateTime.now());
         purchase.setStatus("CONFIRMADO");
 
-        // Guardar
         ticketPurchaseRepository.save(purchase);
 
-        // Notificar por correo
         sendConfirmationEmail(customer, purchase);
 
-        // Entity -> ConfirmationDTO
         return ticketPurchaseMapper.toConfirmationDto(purchase);
     }
 
-    private void sendConfirmationEmail(Customer customer, TicketPurchase purchase) {
+    private void sendConfirmationEmail(User customer, TicketPurchase purchase) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("hello@demomailtrap.co");
         message.setTo(customer.getEmail());

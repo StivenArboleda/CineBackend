@@ -1,18 +1,23 @@
-# Etapa 1: Construcción con Maven
-FROM maven:3.9.8-eclipse-temurin-17 AS build
+# Etapa de build con Maven y JDK 21
+FROM maven:3.9.6-eclipse-temurin-21 AS build
+
 WORKDIR /app
+
+# Copiamos pom.xml y descargamos dependencias
 COPY pom.xml .
+RUN mvn -B dependency:go-offline
+
+# Copiamos el código fuente
 COPY src ./src
+
+# Construimos el jar
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:17-jdk-jammy
-WORKDIR /app
+# Imagen final con JDK 21
+FROM eclipse-temurin:21-jdk
 
-# Copiar el jar generado
+WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-# Exponer el puerto (debe coincidir con el de application.properties)
 EXPOSE 8080
-
-# Comando de inicio
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

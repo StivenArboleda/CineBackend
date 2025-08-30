@@ -1,5 +1,6 @@
 package com.fabrica.cine.backend.model;
 
+import com.fabrica.cine.backend.dto.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -38,7 +39,13 @@ public class Movie {
     @Column(nullable = false)
     private boolean active;
 
-    @Positive(message = "La capacidad debe ser mayor que 0")
+    @Min(value = 0, message = "La capacidad debe ser mayor que 0")
     @Column(nullable = false)
     private int capacity;
+
+    @Column(length = 500)
+    private String image;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 }

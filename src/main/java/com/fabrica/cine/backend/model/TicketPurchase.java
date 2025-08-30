@@ -19,7 +19,7 @@ public class TicketPurchase {
 
     @ManyToOne(optional = false)
     @NotNull(message = "El cliente es obligatorio")
-    private Customer customer;
+    private User customer;
 
     @ManyToOne(optional = false)
     @NotNull(message = "La película es obligatoria")

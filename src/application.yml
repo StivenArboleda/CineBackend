@@ -25,3 +25,6 @@ spring:
 
 firebase:
     bucket:  cine-backend.appspot.com
+
+jwt:
+    secret-key: "MiClaveSuperSeguraDe32Caracteres123456"

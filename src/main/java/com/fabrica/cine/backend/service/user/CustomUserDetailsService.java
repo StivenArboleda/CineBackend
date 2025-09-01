@@ -20,6 +20,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+
+        if (!user.isActive()) {
+            throw new RuntimeException("Usuario inhabilitado, no puede ingresar");
+        }
         return new CustomUserDetails(user);
     }
 }

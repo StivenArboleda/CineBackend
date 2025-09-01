@@ -15,4 +15,5 @@ public interface MovieService {
     MovieDTO disable(Long id);
     MovieDTO enable(Long id);
     void delete(Long id);
+    List<MovieDTO> searchMovies(String title, String category);
 }

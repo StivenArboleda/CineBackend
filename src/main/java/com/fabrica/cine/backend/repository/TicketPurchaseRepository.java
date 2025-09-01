@@ -1,4 +1,4 @@
-package com.fabrica.cine.backend.service.ticket;
+package com.fabrica.cine.backend.repository;
 
 import com.fabrica.cine.backend.model.TicketPurchase;
 import org.springframework.data.jpa.repository.JpaRepository;

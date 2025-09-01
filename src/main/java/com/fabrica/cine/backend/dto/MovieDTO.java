@@ -5,6 +5,9 @@ import lombok.Data;
 
 @Data
 public class MovieDTO {
+
+    private Long id;
+
     @NotBlank(message = "El título es obligatorio")
     @Size(max = 100, message = "El título no puede superar los 100 caracteres")
     private String title;

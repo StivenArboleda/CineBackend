@@ -9,4 +9,5 @@ public class AuthResponseDTO {
     private String token;
     private String expiresAt;
     private String role;
+    private String id;
 }

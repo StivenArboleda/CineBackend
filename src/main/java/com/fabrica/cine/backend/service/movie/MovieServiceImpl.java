@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -46,15 +47,12 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public MovieDTO save(String movieJson, MultipartFile imageFile) {
         try {
-            // Convertir el JSON recibido a MovieDTO usando Jackson
             ObjectMapper objectMapper = new ObjectMapper();
             MovieDTO movieDTO = objectMapper.readValue(movieJson, MovieDTO.class);
 
-            // Subir imagen a Firebase
             String imageUrl = firebaseStorageService.uploadFile(imageFile);
             movieDTO.setImage(imageUrl);
 
-            // Guardar en BD
             Movie movie = movieMapper.toEntity(movieDTO);
             Movie saved = movieRepository.save(movie);
 
@@ -114,6 +112,26 @@ public class MovieServiceImpl implements MovieService {
 
         return movieMapper.toDto(movieRepository.save(movie));
     }
+
+    public List<MovieDTO> searchMovies(String title, String category) {
+        List<Movie> movies;
+
+        if (title != null && category != null) {
+            movies = movieRepository.findByTitleContainingIgnoreCaseAndCategoryIgnoreCase(title, category);
+        } else if (title != null) {
+            movies = movieRepository.findByTitleContainingIgnoreCase(title);
+        } else if (category != null) {
+            movies = movieRepository.findByCategoryIgnoreCase(category);
+        } else {
+            movies = movieRepository.findAll();
+        }
+
+        return movies.stream()
+                .map(movieMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+
 
     @Override
     public void delete(Long id) {

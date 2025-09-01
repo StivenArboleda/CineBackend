@@ -45,7 +45,7 @@ public class MovieController {
     @PutMapping("/movies/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public MovieDTO updateMovie(@Valid @PathVariable Long id, @RequestPart("movie") String movieJson,
-                                @RequestPart("image") MultipartFile imageFile) {
+                                @RequestPart(value = "image", required = false) MultipartFile imageFile) {
         return movieService.update(id, movieJson, imageFile);
     }
 
@@ -53,6 +53,13 @@ public class MovieController {
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteMovie(@Valid @PathVariable Long id) {
         movieService.delete(id);
+    }
+
+    @GetMapping("/movies/search")
+    public List<MovieDTO> searchMovies(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String category) {
+        return movieService.searchMovies(title, category);
     }
 
     @PutMapping("/movies/disable/{id}")

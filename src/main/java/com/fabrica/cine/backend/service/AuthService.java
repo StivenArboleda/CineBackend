@@ -26,7 +26,6 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
-    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
@@ -51,8 +50,12 @@ public class AuthService {
 
         String expiresAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(expirationDate);
 
-        return new AuthResponseDTO(token, expiresAt, mainRole);
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        return new AuthResponseDTO(token, expiresAt, mainRole, String.valueOf(user.getId()));
     }
+
 
     public UserDTO register(UserDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {

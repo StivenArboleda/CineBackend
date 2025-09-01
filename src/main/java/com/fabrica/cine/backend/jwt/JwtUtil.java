@@ -1,8 +1,8 @@
 package com.fabrica.cine.backend.jwt;
 
-import com.fabrica.cine.backend.dto.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -11,7 +11,9 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final String SECRET_KEY = "mi_super_clave_secreta_de_al_menos_32_chars"; // cámbiala y ponla en application.properties
+
+    private final String SECRET_KEY = "MiClaveSuperSeguraDe32Caracteres123456";
+
     private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
     public String generateToken(String username, String role) {

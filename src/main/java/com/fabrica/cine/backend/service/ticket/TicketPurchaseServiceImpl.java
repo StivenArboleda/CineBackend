@@ -8,11 +8,13 @@ import com.fabrica.cine.backend.model.Movie;
 import com.fabrica.cine.backend.model.TicketPurchase;
 import com.fabrica.cine.backend.repository.CustomerRepository;
 import com.fabrica.cine.backend.repository.MovieRepository;
+import com.fabrica.cine.backend.repository.TicketPurchaseRepository;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class TicketPurchaseServiceImpl {
@@ -69,6 +71,13 @@ public class TicketPurchaseServiceImpl {
         sendConfirmationEmail(customer, purchase);
 
         return ticketPurchaseMapper.toConfirmationDto(purchase);
+    }
+
+    public List<TicketConfirmationDTO> findAll(){
+        return ticketPurchaseRepository.findAll()
+                .stream()
+                .map(ticketPurchaseMapper::toConfirmationDto)
+                .toList();
     }
 
     private void sendConfirmationEmail(User customer, TicketPurchase purchase) {

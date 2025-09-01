@@ -37,7 +37,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        log.info("Incoming request URI={} Authorization={}", request.getRequestURI(), authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -45,21 +44,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String token = authHeader.substring(7);
+
         try {
             if (!jwtUtil.isTokenValid(token)) {
-                log.info("JWT inválido o expirado");
                 filterChain.doFilter(request, response);
                 return;
             }
 
             String username = jwtUtil.extractUsername(token);
             if (username == null) {
-                log.info("No se pudo extraer username del token");
                 filterChain.doFilter(request, response);
                 return;
             }
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+            if (!userDetails.isEnabled()) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Usuario inhabilitado");
+                return;
+            }
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -67,14 +71,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            log.info("Autenticación establecida para user={} authorities={}", username, userDetails.getAuthorities());
-
         } catch (Exception ex) {
-            log.error("Error validando JWT: {}", ex.getMessage(), ex);
-            // No setear authentication y dejar que la cadena continúe (dará 401/403 según configuración)
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token inválido o error interno");
+            return;
         }
 
         filterChain.doFilter(request, response);
     }
+
 }
 

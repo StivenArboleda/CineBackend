@@ -10,6 +10,8 @@ public class TicketConfirmationDTO {
     private String movieTitle;
     private Integer quantity;
     private String customerName;
+    private String customerPhone;
+    private String customerEmail;
     private String status;
     private LocalDateTime purchaseDate;
 }

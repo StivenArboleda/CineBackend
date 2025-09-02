@@ -7,6 +7,7 @@ import com.fabrica.cine.backend.repository.MovieRepository;
 import com.fabrica.cine.backend.service.FirebaseStorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MovieServiceImpl implements MovieService {
 
     private final MovieRepository movieRepository;
@@ -46,16 +48,20 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public MovieDTO save(String movieJson, MultipartFile imageFile) {
+        log.info("Guardando película: {}", movieJson);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             MovieDTO movieDTO = objectMapper.readValue(movieJson, MovieDTO.class);
 
+            log.info("Enviando a firebase");
             String imageUrl = firebaseStorageService.uploadFile(imageFile);
+
             movieDTO.setImage(imageUrl);
 
             Movie movie = movieMapper.toEntity(movieDTO);
             Movie saved = movieRepository.save(movie);
 
+            log.info("Película guardada correctamente:");
             return movieMapper.toDto(saved);
 
         } catch (Exception e) {
@@ -65,6 +71,7 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public MovieDTO update(Long id, String movieJson, MultipartFile imageFile) {
+        log.info("Actualizando película: {}", movieJson);
         try {
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -81,11 +88,13 @@ public class MovieServiceImpl implements MovieService {
             movie.setCapacity(movieDTO.getCapacity());
 
             if (imageFile != null && !imageFile.isEmpty()) {
+                log.info("Se actualiza la imagen");
                 String imageUrl = firebaseStorageService.uploadFile(imageFile);
                 movie.setImage(imageUrl);
             }
 
             Movie updated = movieRepository.save(movie);
+            log.info("Película actualizada correctamente:");
             return movieMapper.toDto(updated);
 
         } catch (Exception e) {
@@ -95,9 +104,11 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public MovieDTO disable(Long id){
+        log.info("Película a desactivar: {}", id);
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("La película no existe"));
 
+        log.info("Película desactivada {}", id);
         movie.setActive(false);
 
         return movieMapper.toDto(movieRepository.save(movie));
@@ -105,22 +116,28 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public MovieDTO enable(Long id){
+        log.info("Película a activar {}", id);
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("La película no existe"));
 
         movie.setActive(true);
-
+        log.info("Película activada {}", id);
         return movieMapper.toDto(movieRepository.save(movie));
     }
 
     public List<MovieDTO> searchMovies(String title, String category) {
+
+        log.info("Buscando películas");
         List<Movie> movies;
 
         if (title != null && category != null) {
+            log.info("Buscando películas con título {} y categoria {}", title, category);
             movies = movieRepository.findByTitleContainingIgnoreCaseAndCategoryIgnoreCase(title, category);
         } else if (title != null) {
+            log.info("Buscando películas con título {} ", title);
             movies = movieRepository.findByTitleContainingIgnoreCase(title);
         } else if (category != null) {
+            log.info("Buscando películas con categoria {} ", category);
             movies = movieRepository.findByCategoryIgnoreCase(category);
         } else {
             movies = movieRepository.findAll();

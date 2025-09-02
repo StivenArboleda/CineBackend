@@ -9,6 +9,7 @@ import com.fabrica.cine.backend.model.TicketPurchase;
 import com.fabrica.cine.backend.repository.CustomerRepository;
 import com.fabrica.cine.backend.repository.MovieRepository;
 import com.fabrica.cine.backend.repository.TicketPurchaseRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Slf4j
 public class TicketPurchaseServiceImpl {
 
     private final TicketPurchaseRepository ticketPurchaseRepository;
@@ -68,7 +70,7 @@ public class TicketPurchaseServiceImpl {
 
         ticketPurchaseRepository.save(purchase);
 
-        sendConfirmationEmail(customer, purchase);
+        //sendConfirmationEmail(customer, purchase);
 
         return ticketPurchaseMapper.toConfirmationDto(purchase);
     }

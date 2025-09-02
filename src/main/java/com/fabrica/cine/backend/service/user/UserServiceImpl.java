@@ -1,18 +1,18 @@
 package com.fabrica.cine.backend.service.user;
 
-import com.fabrica.cine.backend.dto.MovieDTO;
 import com.fabrica.cine.backend.dto.Role;
 import com.fabrica.cine.backend.dto.UserDTO;
 import com.fabrica.cine.backend.mapper.UserMapper;
-import com.fabrica.cine.backend.model.Movie;
 import com.fabrica.cine.backend.model.User;
 import com.fabrica.cine.backend.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -42,13 +42,17 @@ public class UserServiceImpl implements UserService {
     }
 
     public List<UserDTO> searchUser(String phone, String email) {
+
         List<User> users;
 
         if (phone != null && email != null) {
+            log.info("Buscando películas con phone {} y email {}", phone, email);
             users = userRepository.findByEmailContainingIgnoreCaseAndPhoneIgnoreCase(phone, email);
         } else if (phone != null) {
+            log.info("Buscando películas con phone {} ", phone);
             users = userRepository.findByPhoneContainingIgnoreCase(phone);
         } else if (email != null) {
+            log.info("Buscando películas con email {}", email);
             users = userRepository.findByEmailIgnoreCase(email);
         } else {
             users = userRepository.findAll();
@@ -61,6 +65,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO register(UserDTO dto) {
+
+
+        log.info("Registrando un usuario: {}", dto);
 
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("El correo ya está registrado");
@@ -75,11 +82,13 @@ public class UserServiceImpl implements UserService {
 
         UserDTO result = userMapper.toDto(saved);
         result.setPassword(null);
+        log.info("Registrado correctamente: {}", dto);
         return result;
     }
 
     public UserDTO registerAdmin(UserDTO dto) {
 
+        log.info("Registrando un admin: {}", dto);
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("El correo ya está registrado");
         }
@@ -89,19 +98,20 @@ public class UserServiceImpl implements UserService {
         user.setRole(Role.ADMIN);
         user.setActive(true);
 
-        System.out.println("Antes de guardar: " + user.isActive());
         User saved = userRepository.save(user);
-        System.out.println("Después de guardar: " + saved.isActive());
 
         UserDTO result = userMapper.toDto(saved);
         result.setPassword(null);
+        log.info("Registrado correctamente: {}", dto);
         return result;
     }
 
     @Override
     public UserDTO disable(Long id){
+
+        log.info("Desactivando un usuario: {}", id);
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("La película no existe"));
+                .orElseThrow(() -> new RuntimeException("El usuario no existe"));
 
         user.setActive(false);
 
@@ -110,8 +120,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO enable(Long id){
+        log.info("Activando un usuario: {}", id);
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("La película no existe"));
+                .orElseThrow(() -> new RuntimeException("El usuario no existe"));
 
         user.setActive(true);
 

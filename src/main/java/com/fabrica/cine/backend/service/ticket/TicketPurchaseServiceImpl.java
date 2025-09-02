@@ -9,11 +9,16 @@ import com.fabrica.cine.backend.model.TicketPurchase;
 import com.fabrica.cine.backend.repository.CustomerRepository;
 import com.fabrica.cine.backend.repository.MovieRepository;
 import com.fabrica.cine.backend.repository.TicketPurchaseRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -69,8 +74,9 @@ public class TicketPurchaseServiceImpl {
         purchase.setStatus("CONFIRMADO");
 
         ticketPurchaseRepository.save(purchase);
+        log.info("Compra con estado confirmada {} ", purchase.toString());
 
-        //sendConfirmationEmail(customer, purchase);
+        sendConfirmationEmail(customer, purchase);
 
         return ticketPurchaseMapper.toConfirmationDto(purchase);
     }
@@ -83,16 +89,29 @@ public class TicketPurchaseServiceImpl {
     }
 
     private void sendConfirmationEmail(User customer, TicketPurchase purchase) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("hello@demomailtrap.co");
-        message.setTo(customer.getEmail());
-        message.setSubject("Confirmación de compra de tickets");
-        message.setText("Hola " + customer.getFirstName() + " " + customer.getLastName() + ",\n\n" +
-                "Has comprado " + purchase.getQuantity() + " tickets para la película: " +
-                purchase.getMovie().getTitle() + ".\n\n" +
-                "Estado: " + purchase.getStatus() + "\n\nGracias por tu compra!");
-        mailSender.send(message);
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+
+            helper.setFrom("stiven2201@gmail.com", "TuApp");
+            helper.setTo(customer.getEmail());
+            helper.setSubject("Confirmación de compra de tickets");
+            helper.setText(
+                    "Hola " + customer.getFirstName() + " " + customer.getLastName() + ",\n\n" +
+                            "Has comprado " + purchase.getQuantity() + " tickets para la película: " +
+                            purchase.getMovie().getTitle() + ".\n\n" +
+                            "Estado: " + purchase.getStatus() + "\n\nGracias por tu compra!",
+                    false
+            );
+
+            mailSender.send(mimeMessage);
+            log.info("Correo enviado a {}", customer.getEmail());
+        } catch (Exception e) {
+            log.error("Error enviando correo", e);
+        }
     }
+
+
 
 
 }
